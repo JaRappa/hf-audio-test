@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AI Response Display</title>
+</head>
+<body>
+    <h1>Test AI Response Display</h1>
+    <button onclick="testResponse()">Test Server Response</button>
+    <div id="results"></div>
+
+    <script>
+    async function testResponse() {
+        try {
+            // Create a simple test audio file (empty for now, just to test the response structure)
+            const formData = new FormData();
+            
+            // Create a simple blob to test with
+            const testBlob = new Blob(['test'], { type: 'audio/wav' });
+            formData.append('audio', testBlob, 'test.wav');
+            
+            const response = await fetch('/process_audio', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            console.log('Full response:', data);
+            
+            document.getElementById('results').innerHTML = `
+                <h2>Server Response:</h2>
+                <p><strong>Transcription:</strong> "${data.transcription}"</p>
+                <p><strong>AI Response:</strong> "${data.response_text}"</p>
+                <p><strong>Audio Available:</strong> ${data.audio_available}</p>
+                <p><strong>Raw JSON:</strong></p>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('results').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+        }
+    }
+    </script>
+</body>
+</html>
+</html>

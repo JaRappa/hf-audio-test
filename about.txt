@@ -1,0 +1,64 @@
+📁 Project Structure
+/home/jake/hf-test/
+├── app.py              # Main Flask server with AI pipeline
+├── requirements.txt    # All Python dependencies
+├── setup.sh           # Automated setup script for Arch Linux
+├── server.sh           # Server management script
+├── test_setup.py       # System testing script
+├── README.md           # Complete documentation
+└── templates/
+    └── index.html      # Beautiful web UI
+
+quickstart
+1. install everything
+./setup.sh
+2. test the setup
+./server.sh test
+3. start the server
+./server.sh start
+4. find server IP
+./server.sh ip
+5. Access from any device on your LAN: Open browser to http://[server-ip]:5000
+
+🔧 Features
+AI Pipeline:
+
+Speech-to-Text: Whisper model for accurate transcription
+Text Generation: DialoGPT for conversational AI responses
+Text-to-Speech: Coqui TTS for natural voice synthesis
+Web Interface:
+
+Beautiful, modern UI with audio visualization
+Real-time audio recording with WebRTC
+File upload support for audio files
+Live status updates and error handling
+Responsive design for mobile/desktop
+Server Management:
+
+Easy setup script for Arch Linux
+System testing and health checks
+Systemd service integration
+Comprehensive logging and monitoring
+🌐 Usage
+From the Web UI:
+
+Click "Start Recording" and speak
+Or upload an audio file
+View transcription, AI response, and hear the audio reply
+API Endpoints:
+
+GET /health - Server health check
+POST /process_audio - Process audio through pipeline
+⚙️ System Requirements
+Minimum: 4GB RAM, 5GB storage, 2+ CPU cores Recommended: 8GB+ RAM, SSD storage, GPU (optional)
+
+The system will automatically detect and use CUDA if available for faster processing.
+
+🔧 Management Commands
+./server.sh start    # Start the server
+./server.sh stop     # Stop the server  
+./server.sh status   # Check if running
+./server.sh test     # Run system tests
+./server.sh ip       # Show connection URLs
+./server.sh logs     # View server logs
+

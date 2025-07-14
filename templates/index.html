@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Audio Pipeline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .title {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+
+        .recording-section {
+            margin-bottom: 30px;
+        }
+
+        .record-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 20px 40px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            min-width: 150px;
+        }
+
+        .record-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .record-button.recording {
+            background: linear-gradient(45deg, #ff4757, #c44569);
+            animation: pulse 1.5s infinite;
+        }
+
+        .record-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .upload-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
+
+        .file-input {
+            margin: 10px 0;
+        }
+
+        .upload-button {
+            background: linear-gradient(45deg, #5f27cd, #341f97);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .status.processing {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .results {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .result-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-content {
+            color: #333 !important;
+            line-height: 1.6;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+            font-weight: 500;
+            min-height: 50px;
+            font-size: 1.1em;
+        }
+
+        .audio-player {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .connection-status.connected {
+            background: #28a745;
+        }
+
+        .connection-status.disconnected {
+            background: #dc3545;
+        }
+
+        .visualizer {
+            margin: 20px 0;
+            height: 100px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .visualizer.active {
+            border-color: #667eea;
+            background: linear-gradient(45deg, #667eea20, #764ba220);
+        }
+
+        .wave-bars {
+            display: flex;
+            align-items: end;
+            height: 60px;
+            gap: 3px;
+        }
+
+        .wave-bar {
+            width: 4px;
+            background: #667eea;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        /* Specific styling for transcription box */
+        #transcription {
+            background: #e8f5e8 !important;
+            border: 3px solid #28a745 !important;
+            color: #000 !important;
+            font-weight: bold !important;
+            font-size: 1.2em !important;
+            padding: 20px !important;
+        }
+
+        /* Specific styling for AI response box */
+        #response {
+            background: #e8f4fd !important;
+            border: 3px solid #007bff !important;
+            color: #000 !important;
+            font-weight: bold !important;
+            font-size: 1.2em !important;
+            padding: 20px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎤 AI Audio Pipeline</h1>
+        <p class="subtitle">Speak, get AI response, hear it back</p>
+
+        <div class="connection-status" id="connectionStatus">Connecting...</div>
+
+        <!-- Recording Section -->
+        <div class="recording-section">
+            <button id="recordButton" class="record-button">🎤 Start Recording</button>
+            <button id="stopButton" class="record-button" style="display: none;">⏹️ Stop Recording</button>
+            
+            <div class="visualizer" id="visualizer">
+                <div class="wave-bars" id="waveBars">
+                    <div class="wave-bar" style="height: 20px;"></div>
+                    <div class="wave-bar" style="height: 30px;"></div>
+                    <div class="wave-bar" style="height: 15px;"></div>
+                    <div class="wave-bar" style="height: 40px;"></div>
+                    <div class="wave-bar" style="height: 25px;"></div>
+                    <div class="wave-bar" style="height: 35px;"></div>
+                    <div class="wave-bar" style="height: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <p><strong>Or upload an audio file:</strong></p>
+            <input type="file" id="audioFile" accept="audio/*" class="file-input">
+            <br>
+            <button id="uploadButton" class="upload-button">📤 Upload & Process</button>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="status" style="display: none;"></div>
+
+        <!-- Results -->
+        <div id="results" class="results" style="display: none;">
+            <div class="result-section">
+                <div class="result-title">📝 Transcription:</div>
+                <div id="transcription" class="result-content"></div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">🤖 AI Response:</div>
+                <div id="response" class="result-content"></div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">🔊 Audio Response:</div>
+                <audio id="audioResponse" class="audio-player" controls style="display: none;">
+                    Your browser does not support the audio element.
+                </audio>
+                <div id="noAudio" style="display: none; color: #666; font-style: italic;">Audio response not available</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script>
+        // WebSocket connection
+        const socket = io();
+        
+        // DOM elements
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const uploadButton = document.getElementById('uploadButton');
+        const audioFileInput = document.getElementById('audioFile');
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+        const transcriptionDiv = document.getElementById('transcription');
+        const responseDiv = document.getElementById('response');
+        const audioResponseDiv = document.getElementById('audioResponse');
+        const noAudioDiv = document.getElementById('noAudio');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const visualizer = document.getElementById('visualizer');
+        const waveBars = document.getElementById('waveBars') ? document.getElementById('waveBars').children : [];
+
+        // Debug: Log which elements were found
+        console.log('DOM Elements found:');
+        console.log('- recordButton:', !!recordButton);
+        console.log('- stopButton:', !!stopButton);
+        console.log('- uploadButton:', !!uploadButton);
+        console.log('- statusDiv:', !!statusDiv);
+        console.log('- resultsDiv:', !!resultsDiv);
+        console.log('- transcriptionDiv:', !!transcriptionDiv);
+        console.log('- responseDiv:', !!responseDiv);
+        console.log('- audioResponseDiv:', !!audioResponseDiv);
+        console.log('- noAudioDiv:', !!noAudioDiv);
+
+        // Recording variables
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+
+        // Socket events
+        socket.on('connect', function() {
+            connectionStatus.textContent = 'Connected';
+            connectionStatus.className = 'connection-status connected';
+        });
+
+        socket.on('disconnect', function() {
+            connectionStatus.textContent = 'Disconnected';
+            connectionStatus.className = 'connection-status disconnected';
+        });
+
+        socket.on('status', function(data) {
+            console.log('Server status:', data.message);
+        });
+
+        // Initialize audio recording
+        async function initializeRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = function(event) {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = function() {
+                    const blob = new Blob(recordedChunks, { type: 'audio/wav' });
+                    processAudioBlob(blob);
+                    recordedChunks = [];
+                };
+
+                // Set up audio visualization
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                function updateVisualization() {
+                    if (isRecording) {
+                        analyser.getByteFrequencyData(dataArray);
+                        
+                        for (let i = 0; i < waveBars.length; i++) {
+                            const value = dataArray[i * 4] || 0;
+                            const height = (value / 255) * 60 + 5;
+                            waveBars[i].style.height = height + 'px';
+                        }
+                        
+                        requestAnimationFrame(updateVisualization);
+                    }
+                }
+                
+                recordButton.onclick = startRecording;
+                stopButton.onclick = stopRecording;
+                
+                function startRecording() {
+                    recordedChunks = [];
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    recordButton.style.display = 'none';
+                    stopButton.style.display = 'inline-block';
+                    stopButton.classList.add('recording');
+                    visualizer.classList.add('active');
+                    
+                    updateVisualization();
+                    showStatus('Recording... Click stop when finished', 'processing');
+                }
+                
+                function stopRecording() {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    
+                    recordButton.style.display = 'inline-block';
+                    stopButton.style.display = 'none';
+                    stopButton.classList.remove('recording');
+                    visualizer.classList.remove('active');
+                    
+                    // Reset wave bars
+                    for (let bar of waveBars) {
+                        bar.style.height = '20px';
+                    }
+                    
+                    showStatus('Processing audio...', 'processing');
+                }
+                
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                showStatus('Could not access microphone. Please check permissions.', 'error');
+            }
+        }
+
+        // Upload button handler
+        uploadButton.onclick = function() {
+            const file = audioFileInput.files[0];
+            if (!file) {
+                showStatus('Please select an audio file first', 'error');
+                return;
+            }
+            
+            showStatus('Processing uploaded file...', 'processing');
+            processAudioBlob(file);
+        };
+
+        // Process audio blob
+        async function processAudioBlob(blob) {
+            try {
+                const formData = new FormData();
+                formData.append('audio', blob, 'audio.wav');
+                
+                const response = await fetch('/process_audio', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Display results
+                console.log('Server response data:', data);
+                console.log('Transcription:', data.transcription);
+                console.log('Response text:', data.response_text);
+                
+                // Check if elements exist before using them
+                if (!transcriptionDiv) {
+                    console.error('Transcription element not found!');
+                    return;
+                }
+                if (!responseDiv) {
+                    console.error('Response element not found!');
+                    return;
+                }
+                if (!resultsDiv) {
+                    console.error('Results element not found!');
+                    return;
+                }
+                
+                // Clear any previous content
+                transcriptionDiv.innerHTML = '';
+                responseDiv.innerHTML = '';
+                
+                // Set transcription with fallback
+                if (data.transcription) {
+                    transcriptionDiv.textContent = data.transcription;
+                    // Double-check with innerHTML as backup
+                    if (!transcriptionDiv.textContent) {
+                        transcriptionDiv.innerHTML = data.transcription;
+                    }
+                } else {
+                    transcriptionDiv.textContent = '[No transcription received]';
+                }
+                
+                // Set AI response with fallback
+                if (data.response_text) {
+                    responseDiv.textContent = data.response_text;
+                    // Double-check with innerHTML as backup
+                    if (!responseDiv.textContent) {
+                        responseDiv.innerHTML = data.response_text;
+                    }
+                } else {
+                    responseDiv.textContent = '[No AI response received]';
+                }
+                
+                // Debug: Check if elements exist and values are set
+                console.log('Transcription element:', transcriptionDiv);
+                console.log('Response element:', responseDiv);
+                console.log('Transcription content after setting:', transcriptionDiv.textContent);
+                console.log('Response content after setting:', responseDiv.textContent);
+                
+                // Force visibility by adding visible styles
+                transcriptionDiv.style.display = 'block';
+                transcriptionDiv.style.visibility = 'visible';
+                transcriptionDiv.style.opacity = '1';
+                responseDiv.style.display = 'block';
+                responseDiv.style.visibility = 'visible';
+                responseDiv.style.opacity = '1';
+                
+                if (data.audio_available && data.audio_data) {
+                    // Convert base64 to audio
+                    const audioBlob = base64ToBlob(data.audio_data, 'audio/wav');
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    if (audioResponseDiv) {
+                        audioResponseDiv.src = audioUrl;
+                        audioResponseDiv.style.display = 'block';
+                    }
+                    if (noAudioDiv) {
+                        noAudioDiv.style.display = 'none';
+                    }
+                } else {
+                    if (audioResponseDiv) {
+                        audioResponseDiv.style.display = 'none';
+                    }
+                    if (noAudioDiv) {
+                        noAudioDiv.style.display = 'block';
+                    }
+                }
+                
+                if (resultsDiv) {
+                    resultsDiv.style.display = 'block';
+                }
+                showStatus('Processing complete!', 'success');
+                
+            } catch (error) {
+                console.error('Error processing audio:', error);
+                showStatus('Error processing audio: ' + error.message, 'error');
+            }
+        }
+
+        // Utility functions
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+        }
+
+        function base64ToBlob(base64, contentType) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: contentType });
+        }
+
+        // Initialize the application
+        window.onload = function() {
+            initializeRecording();
+        };
+    </script>
+</body>
+</html>
