@@ -69,6 +69,10 @@ logs/
 temp/
 tmp/
 
+# Docker
+.dockerignore
+docker-compose.override.yml
+
 # Model files (if large)
 *.model
 *.bin

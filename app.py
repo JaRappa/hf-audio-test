@@ -275,4 +275,7 @@ if __name__ == '__main__':
     
     # Start the server
     logger.info("Starting AI Pipeline Server...")
-    socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+    
+    # For production use, disable Werkzeug reloader and use proper production settings
+    socketio.run(app, host='0.0.0.0', port=5000, debug=False, 
+                 allow_unsafe_werkzeug=True, use_reloader=False)

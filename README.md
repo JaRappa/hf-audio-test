@@ -8,13 +8,36 @@ A complete AI-powered audio processing pipeline that:
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Arch Linux server
+### 🐳 Docker (Recommended)
+
+The easiest way to run the AI Audio Pipeline is using Docker:
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd hf-audio-test
+
+# Start with Docker Compose
+docker-compose up --build
+
+# Or use the management script (Windows)
+.\docker.ps1 start
+
+# Or use the management script (Linux/Mac)
+./docker.sh start
+```
+
+**Access**: http://localhost:5000
+
+### 🐧 Native Installation
+
+#### Prerequisites
+- Linux/Windows/macOS
 - Python 3.8+ (tested with Python 3.13)
 - Virtual environment activated
 - Internet connection for downloading models
 
-### Installation
+#### Installation
 
 1. **Activate your virtual environment:**
    ```bash
@@ -36,8 +59,28 @@ A complete AI-powered audio processing pipeline that:
    ```
 
 4. **Access the web interface:**
-   - Open browser to `http://192.168.1.17:5000` (replace with your server's IP)
+   - Open browser to `http://localhost:5000` (Docker) or `http://192.168.1.17:5000` (native)
    - The interface will work from any device on your LAN
+
+## 🐳 Docker Usage
+
+### Quick Commands
+
+```bash
+# Windows
+.\docker.ps1 start     # Start containers
+.\docker.ps1 logs      # View logs
+.\docker.ps1 status    # Check status
+.\docker.ps1 stop      # Stop containers
+
+# Linux/Mac
+./docker.sh start      # Start containers
+./docker.sh logs       # View logs
+./docker.sh status     # Check status
+./docker.sh stop       # Stop containers
+```
+
+For complete Docker documentation, see [DOCKER.md](DOCKER.md).
 
 ## 🔧 Manual Installation
 
