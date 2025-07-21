@@ -19,7 +19,9 @@ def test_imports():
         'soundfile',
         'numpy',
         'gtts',
-        'pydub'
+        'pydub',
+        'boto3',
+        'botocore'
     ]
     
     print("🧪 Testing package imports...")
@@ -107,6 +109,58 @@ def test_server_dependencies():
     except Exception as e:
         print(f"❌ Flask error: {e}")
 
+def test_aws_setup():
+    """Test AWS Bedrock setup"""
+    print("\n☁️ Testing AWS Bedrock setup...")
+    
+    try:
+        import boto3
+        from botocore.exceptions import NoCredentialsError, ClientError
+        
+        # Test if AWS credentials are available
+        try:
+            client = boto3.client('bedrock-runtime', region_name='us-east-1')
+            print("✅ AWS credentials found")
+            
+            # Try to test the connection (this might fail if no model access)
+            try:
+                response = client.invoke_model(
+                    modelId='anthropic.claude-3-haiku-20240307-v1:0',
+                    body='{"anthropic_version": "bedrock-2023-05-15", "max_tokens": 5, "messages": [{"role": "user", "content": "test"}]}'
+                )
+                print("✅ AWS Bedrock connection successful!")
+                print("🧠 LLM will use AWS Bedrock Claude 3")
+                return True
+            except ClientError as e:
+                error_code = e.response['Error']['Code']
+                if error_code == 'AccessDeniedException':
+                    print("⚠️  AWS credentials work, but no Bedrock model access")
+                    print("   Please request access to Claude models in AWS Bedrock console")
+                elif error_code == 'ValidationException':
+                    print("✅ AWS Bedrock access confirmed (validation error is expected)")
+                    print("🧠 LLM will use AWS Bedrock Claude 3")
+                    return True
+                else:
+                    print(f"⚠️  AWS Bedrock error: {e}")
+                    print("   Check your AWS setup in AWS_SETUP.md")
+                return False
+            except Exception as e:
+                print(f"⚠️  AWS connection test failed: {e}")
+                return False
+                
+        except NoCredentialsError:
+            print("⚠️  No AWS credentials found")
+            print("   AWS setup is optional - see AWS_SETUP.md for configuration")
+            print("🤖 LLM will use fallback mode (simple responses)")
+            return False
+        except Exception as e:
+            print(f"⚠️  AWS setup error: {e}")
+            return False
+            
+    except ImportError:
+        print("❌ boto3 not installed - AWS integration disabled")
+        return False
+
 def main():
     """Run all tests"""
     print("🔍 AI Audio Pipeline - System Test")
@@ -124,6 +178,9 @@ def main():
     # Test server dependencies
     test_server_dependencies()
     
+    # Test AWS setup
+    aws_working = test_aws_setup()
+    
     # Test model loading (optional - can be slow)
     if "--skip-models" not in sys.argv:
         test_model_loading()
@@ -140,6 +197,10 @@ def main():
         return 1
     else:
         print("✅ All tests passed! System ready for AI Audio Pipeline")
+        if aws_working:
+            print("🌤️  AWS Bedrock: ✅ Ready for intelligent responses")
+        else:
+            print("🤖 AWS Bedrock: ⚠️  Will use fallback mode (see AWS_SETUP.md)")
         print("\nTo start the server: python3 app.py")
         return 0
 

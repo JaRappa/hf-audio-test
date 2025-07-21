@@ -1,12 +1,33 @@
-# 🎤 AI Audio Pipeline
+# 🎤 AI Audio Pipeline with AWS Integration
 
 A complete AI-powered audio processing pipeline that:
-1. **Transcribes** speech to text using Whisper
-2. **Generates** AI responses using DialoGPT
-3. **Synthesizes** speech from text using TTS
+1. **Transcribes** speech to text using Whisper (local)
+2. **Generates** AI responses using AWS Bedrock Claude (cloud)
+3. **Synthesizes** speech from text using TTS (local)
 4. **Serves** a beautiful web interface for interaction
 
+## 🏗️ Hybrid Architecture
+
+**Local Components (Privacy & Speed):**
+- 🎤 Speech-to-Text: Whisper model for accurate transcription
+- 🔊 Text-to-Speech: Google TTS for natural voice synthesis
+- 🌐 Web interface and audio processing
+
+**Cloud Components (Power & Intelligence):**
+- 🧠 Language Model: AWS Bedrock Claude 3 for intelligent responses
+- 💬 Advanced conversational AI capabilities
+
 ## 🚀 Quick Start
+
+### 🌤️ Prerequisites
+
+**For AWS Integration (Recommended):**
+1. AWS Account with Bedrock access
+2. AWS credentials configured
+3. See [AWS_SETUP.md](AWS_SETUP.md) for detailed setup
+
+**Without AWS (Fallback Mode):**
+- Application works with simple rule-based responses
 
 ### 🐳 Docker (Recommended)
 
@@ -17,6 +38,10 @@ The easiest way to run the AI Audio Pipeline is using Docker:
 git clone <your-repo-url>
 cd hf-audio-test
 
+# Configure AWS credentials (see AWS_SETUP.md)
+cp .env.example .env
+# Edit .env with your AWS credentials
+
 # Start with Docker Compose
 docker-compose up --build
 
@@ -26,6 +51,22 @@ docker-compose up --build
 # Or use the management script (Linux/Mac)
 ./docker.sh start
 ```
+
+## 🌟 Why AWS Integration?
+
+**Benefits of using AWS Bedrock for text generation:**
+
+✅ **Much Smarter Responses** - Claude 3 vs local DialoGPT
+✅ **Lower Local Resource Usage** - No need for large language models locally  
+✅ **Cost Effective** - Pay per use (~$0.0001 per conversation)
+✅ **Always Up-to-Date** - Latest models without downloads
+✅ **Scalable** - Handle multiple users without local GPU requirements
+✅ **Fallback Safe** - Works offline with simple responses if AWS unavailable
+
+**What stays local for privacy & speed:**
+- Voice transcription (your audio never leaves your machine)
+- Audio processing and file handling
+- Web interface and user interactions
 
 **Access**: http://localhost:5000
 
@@ -49,7 +90,16 @@ docker-compose up --build
    pip install -r requirements.txt
    ```
 
-3. **Start the server:**
+3. **Test the setup:**
+   ```bash
+   # Test system dependencies
+   python test_setup.py
+   
+   # Test AWS integration specifically
+   python test_aws.py
+   ```
+
+4. **Start the server:**
    ```bash
    ./start_server.sh
    ```
